@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grade 6 Answers Dashboard</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: #0f172a;
+      color: white;
+    }
+
+    body.locked {
+      overflow: hidden;
+    }
+
+    body.locked .app,
+    body.locked .toast {
+      display: none;
+    }
+
+    .password-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: grid;
+      place-items: center;
+      background: white;
+      color: black;
+    }
+
+    .password-form {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .password-form input {
+      width: 180px;
+      border: none;
+      border-bottom: 1px solid black;
+      outline: none;
+      background: transparent;
+      color: black;
+      font: inherit;
+    }
+
+    .password-screen.hidden {
+      display: none;
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      height: 100vh;
+    }
+
+    .sidebar {
+      background: #111827;
+      padding: 20px;
+      overflow-y: auto;
+      border-right: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .brand {
+      background: linear-gradient(135deg, #22c55e, #3b82f6);
+      padding: 20px;
+      border-radius: 20px;
+      margin-bottom: 18px;
+    }
+
+    .brand h1 {
+      font-size: 24px;
+      line-height: 1.1;
+    }
+
+    .brand p {
+      font-size: 12px;
+      font-weight: bold;
+      opacity: 0.9;
+      margin-bottom: 6px;
+    }
+
+    .menu-title {
+      color: #cbd5e1;
+      font-size: 13px;
+      font-weight: bold;
+      margin: 14px 0 10px;
+    }
+
+    .subject-btn {
+      width: 100%;
+      border: none;
+      border-radius: 14px;
+      background: #1f2937;
+      color: white;
+      padding: 14px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .subject-btn:hover {
+      background: #273449;
+    }
+
+    .subject-btn.active {
+      background: #22c55e;
+    }
+
+    .count {
+      background: rgba(255,255,255,0.2);
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+    }
+
+    .note {
+      color: #cbd5e1;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 14px;
+      border-radius: 14px;
+      font-size: 12px;
+      line-height: 1.5;
+      margin-top: 15px;
+    }
+
+    .main {
+      padding: 24px;
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      gap: 14px;
+      overflow: hidden;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+    }
+
+    h2 {
+      font-size: 34px;
+    }
+
+    .subtitle {
+      color: #cbd5e1;
+      margin-top: 4px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button.action {
+      border: none;
+      border-radius: 12px;
+      padding: 11px 14px;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      background: #334155;
+    }
+
+    #copyBtn {
+      background: #22c55e;
+    }
+
+    #allBtn {
+      background: #f97316;
+    }
+
+    #printBtn {
+      background: #3b82f6;
+    }
+
+    .search-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+    }
+
+    #searchInput {
+      border: 1px solid rgba(255,255,255,0.15);
+      outline: none;
+      border-radius: 16px;
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.08);
+      color: white;
+      font-size: 15px;
+    }
+
+    #searchInput::placeholder {
+      color: #94a3b8;
+    }
+
+    #clearBtn {
+      border: none;
+      border-radius: 16px;
+      padding: 0 18px;
+      background: rgba(255,255,255,0.1);
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .card {
+      background: #f8fafc;
+      color: #0f172a;
+      border-radius: 24px;
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      min-height: 0;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+    }
+
+    .card-header {
+      background: white;
+      padding: 18px 22px;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .pill {
+      background: #dcfce7;
+      color: #166534;
+      padding: 7px 11px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .answer-area {
+      overflow-y: auto;
+      padding: 22px;
+    }
+
+    .answer-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 10px;
+    }
+
+    .answer-line {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 11px 12px;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .answer-line.arabic {
+      direction: rtl;
+      text-align: right;
+      font-size: 15px;
+    }
+
+    .section-heading {
+      grid-column: 1 / -1;
+      background: #0f172a;
+      color: white;
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-weight: bold;
+      margin-top: 8px;
+    }
+
+    mark {
+      background: #fde68a;
+      border-radius: 4px;
+      padding: 0 2px;
+    }
+
+    .toast {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      background: #111827;
+      color: white;
+      padding: 13px 16px;
+      border-radius: 14px;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: 0.2s;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 850px) {
+      .app {
+        grid-template-columns: 1fr;
+        height: auto;
+      }
+
+      .main {
+        min-height: 800px;
+      }
+
+      .topbar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+
+    @media print {
+      .sidebar, .actions, .search-row {
+        display: none;
+      }
+
+      .app {
+        display: block;
+        height: auto;
+      }
+
+      body {
+        background: white;
+        color: black;
+      }
+
+      .main {
+        display: block;
+        padding: 0;
+      }
+
+      .card {
+        box-shadow: none;
+        border-radius: 0;
+      }
+
+      .answer-area {
+        overflow: visible;
+      }
+    }
+  </style>
+</head>
+<body class="locked">
+  <div class="password-screen" id="passwordScreen">
+    <form class="password-form" id="passwordForm" autocomplete="off">
+      <label for="passwordInput">PASSWORD:</label>
+      <input id="passwordInput" type="password" autofocus>
+    </form>
+  </div>
+
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <p>GRADE 6 REVISION</p>
+        <h1>Answers Dashboard</h1>
+      </div>
+
+      <div class="menu-title">SUBJECTS</div>
+      <div id="subjectMenu"></div>
+
+      <div class="note">
+        Click a subject to show the answers. Use search to find a number or word.
+      </div>
+    </aside>
+
+    <main class="main">
+      <section class="topbar">
+        <div>
+          <h2 id="pageTitle">ICT Answers</h2>
+          <p class="subtitle" id="pageSubtitle">Clickable answer sheet with quick search.</p>
+        </div>
+
+        <div class="actions">
+          <button class="action" id="copyBtn" onclick="copyCurrent()">Copy Current</button>
+          <button class="action" id="allBtn" onclick="showAll()">Show All</button>
+          <button class="action" id="printBtn" onclick="window.print()">Print</button>
+        </div>
+      </section>
+
+      <section class="search-row">
+        <input id="searchInput" type="text" placeholder="Search current answer sheet..." oninput="renderAnswers()">
+        <button id="clearBtn" onclick="clearSearch()">Clear</button>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <strong id="cardTitle">ICT ANSWERS</strong>
+          <span class="pill" id="statusPill">55 answers</span>
+        </div>
+
+        <div class="answer-area">
+          <div id="answersContainer" class="answer-grid"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast" id="toast">Copied!</div>
+
+  <script>
+    const answers = {"ICT ANSWERS": ["1-b Human traits in problem-solving and logic", "2-c Facial Recognition", "3-a Inclusiveness", "4-b Algorithms", "5-c Chatbots", "6-a E-commerce", "7-c A partner", "8-a The Internet", "9-b Smart search engines", "10-b Alexandria Library", "11-c Both a and b", "12-c Chat windows (Chatbots)", "13-b Online", "14-c Both a and b", "15-a Cloud computing", "16-c Click \"New Meeting\"", "17-a Same time", "18-b Follow-up email", "19-c HTML", "20-b Corrupted file", "21-c Cable or power socket", "22-b JavaScript", "23-b GNU", "24-a Artificial Intelligence", "25-b Open-source", "26-a Original colors", "27-c Special effects", "28-b ICT", "29-c Electric vehicles", "30-c Secure", "31-c a & b", "32-b Online booking", "33-c Operating system", "34-b Files and folders", "35-c a & b", "36-c Keyboard", "37-b Control Panel", "38-c Word", "39-b New Document", "40-c Insert", "41-a Messaging services", "42-c WhatsApp", "43-c Microsoft PowerPoint", "44-c Insert", "45-b Slides", "46-a Microsoft Office", "47-c File tab", "48-b Database", "49-a Insert column", "50-c =", "51-c Records", "52-c a & b", "53-c PowerPoint", "54-b Dialog box", "55-b Engaging"], "ENGLISH ANSWERS": ["1-b Masterpiece", "2-b Artist", "3-a Mural", "4-b Canvas", "5-c Whisper", "6-a Sketch", "7-c Gallery", "8-a Or", "9-d Nor", "10-a Nor", "11-a Or", "12-c Engineer", "13-b Blueprint", "14-b Assemble", "15-c Linen", "16-a Pendulum", "17-b Invention", "18-c Improve", "19-a Threads", "20-b Who", "21-b Which", "22-a Whose", "23-d That", "24-b Who", "25-c Archaeologist", "26-c Chamber", "27-c Mummy", "28-b Discovery", "29-c Temple", "30-b Restore", "31-a Structure", "32-b Talented", "33-c Measure", "34-c Burial", "35-c Lived", "36-b Finished", "37-b Have", "38-a Ever", "39-b Already", "40-b Bridges", "41-b Narrow and crowded", "42-a Self-reliant", "43-c Extend", "44-c Clothes and fabrics", "45-b Encourage", "46-b Enlarge", "47-c Infrastructure", "48-a Determination", "49-a Used to", "50-b Didn't use to", "51-a Did / use to", "52-a Used to", "53-a Used to", "54-c Digital screen", "55-c Fast", "56-b Smart doors", "57-c Will be", "58-c Pay by card", "59-c Cleanliness", "60-c Elevator", "61-c Doors", "62-a Digital screen", "63-a Will", "64-a Use", "65-a Rains", "66-a Will miss", "67-a Studies", "68-a Rains", "69-c Rules", "70-d Electric bus"], "MATH ANSWERS": ["1-b 5/4", "2-d 1/5", "3-b 0", "4-b 1/2", "5-d 12", "6-c 6", "7-c 8", "8-a 1⅓", "9-c 0", "10-a 36", "11-b 2 ÷ 2/3", "12-b >", "13-d 5", "14-a 8", "15-b 0.112", "16-a 3.198", "17-c 90", "18-d 121.2", "19-a 7", "20-No correct option; 7:12 is already simplest", "21-b 1:2", "22-b 4:7", "23-b 16", "24-c 25", "25-b 61", "26-d 18", "27-c a × d = c × b", "28-c 6", "29-a 1:1", "30-a 1:4", "31-d 25", "32-b 50", "33-a 50", "34-d 40", "35-b 8", "36-b 48", "37-c 15", "38-b =", "39-a Rate", "40-c 3 cups per 7 loaves of bread", "41-a 1", "42-c 1 week / 7 days", "43-c 3", "44-c 10", "45-d On y-axis", "46-b (-3, 3)", "47-d 4", "48-d 9", "49-d (-2, 4)", "50-c 9", "51-d 12", "52-b 40", "53-a 44", "54-c 42", "55-c 4", "56-c 280", "57-d 100", "58-b 24 cm²", "59-a 80", "60-b 60", "61-d 0.09", "62-a 1000", "63-c 3", "64-d 150", "65-c 150", "66-b 100", "67-a 84", "68-c Third", "69-c 60"], "SCIENCE ANSWERS": ["MAIN SCIENCE QUESTIONS", "1-c Lionfish", "2-d Sunlight", "3-a Evaporation - transpiration", "4-d Energy - force", "5-b Precipitation", "6-b Dry side only", "7-a Condensation", "8-b Wet - dry", "9-d Grasses and small plants", "10-b Wind", "11-b Bricks - cement", "12-d Length of ears", "13-c Drinking more soda", "14-a The cell nucleus", "15-a Rocks, air and water", "16-b Clay - silt", "17-b Desert area", "18-d More than", "19-c Heavy rain - sudden melting of snow", "20-c Runoff - collection", "21-b Liquids - convection", "22-a Yellow", "23-c Rocks", "24-b Gray", "25-c Availability of water and light", "26-d Tropical rain forest", "27-c Rainforest", "28-c Condensation", "29-a Measure the temperature", "30-b Transpiration", "31-b Genetic factor", "32-c Light", "33-a Humidity", "34-a Bacteria and fungi", "35-b Nutrients", "36-c Genetic factors", "37-c Rain and winds", "38-a Erosion", "39-c Fur color", "40-c Chrysanthemum", "41-c No hair or very fine hair", "42-b Silt", "43-b Slow", "44-c African penguin", "45-d Bird migration", "46-a Structural", "47-b Overgrazing", "48-c Moderate", "49-b Warm", "50-a Runoff", "51-b Solar", "52-d Plants", "53-d Evaporate", "54-Missing in the PDF", "55-Missing in the PDF", "56-d Intensity and duration of light", "57-b Weather balloon", "58-b Hot - cold", "59-d Water - air", "60-a More fertile", "61-b Large - precipitation", "62-c Little - roots", "63-c Pesticides - chemical fertilizers", "64-c Clay - large", "65-a Mosquitos - frogs", "66-c Increase the soil erosion", "67-c Natural changes and human activities", "68-b Extinction", "69-c Increases - decreases", "70-b Rain gauge", "SCIENCE 2024 QUESTIONS", "1-c Evaporation", "2-c Hot", "3-c Transpiration", "4-d Surface runoff", "5-a The sun", "6-b Burning", "7-b Loses", "8-b Much density", "9-b Water vapor", "10-d The sun", "11-b Evaporation - condensation - precipitation", "12-c Radiation", "13-c Rainfall", "14-d Silt", "15-d Continuous and never ending", "16-a It contains a large amount of air", "17-d Soil components", "18-c Structural", "19-a Gravity", "20-c The dense feathers of the penguin", "SCIENCE 2025 QUESTIONS", "1-a Reservoir", "2-b Gravity", "3-c Decreases", "4-a Weather forecasting", "5-d Temperature - atmospheric pressure", "6-a Temperature", "7-b Adaptation", "8-a Behavioral", "9-a Falcons - Eagles", "10-c Components resulting from decomposition"], "CONNECT PLUS ANSWERS": ["CONNECT PLUS MAIN 1-50", "1-a Peninsula", "2-c Fascinated", "3-b Famous", "4-d Wheelchair", "5-d Drops", "6-b Is cleaned", "7-b Are delivered", "8-b Is spoken", "9-a Is served", "10-a Is read", "11-b To say goodbye to someone leaving", "12-b To solve or understand something", "13-a Volunteer", "14-b Decorate", "15-b Cheetah", "16-c Bamboo", "17-a Habitat", "18-b News", "19-d Sociable", "20-b Will be repaired", "21-a Will be reviewed", "22-a Will be cleaned", "23-a Was delivered", "24-a Was taught", "25-c Were reviewed", "26-a Aquarium", "27-b Embarrassed", "28-b Determined", "29-d Scary", "30-c Vacation", "31-d Worked", "32-c Was", "33-b Arrived", "34-b Would see", "35-a Would tell", "36-a Would travel", "37-a Would take", "38-c Taking", "39-d Comic", "40-d Wrong", "41-c To study", "42-a Oasis", "43-c Am visiting", "44-a Is buying", "45-c Are going", "46-a Are having", "47-a Were", "48-a Interesting as", "49-b Clever as", "50-a Good as", "CONNECT PLUS 2024 QUESTIONS", "1-b Navigator", "2-c Astronomy", "3-d Fascinated", "4-c Peninsula", "5-c Saw", "6-b Wheelchair", "7-a Staff", "8-a Breath", "9-d Follow", "10-d Gravity", "11-a Spacesuit", "12-c Astronaut", "13-c Wipes", "14-c Base camp", "15-b Avalanche", "16-d Ambitious", "17-b Argue", "18-a Crack", "19-d Deer", "20-b Up", "CONNECT PLUS EXTRA 10 QUESTIONS", "1-d Astronomy", "2-d Up", "3-c Navigator", "4-c Volunteer", "5-a Are fed", "6-c Written", "7-c Bacteria", "8-b Would", "9-a To read", "10-c Independent"], "ARABIC ANSWERS": ["1. فعل مضارع منصوب", "2. أن الناسخة", "3. اسم أن منصوب", "4. فعل مضارع منصوب", "5. الفتحة الظاهرة", "6. تجني", "7. تسعى", "8. أتركْ", "9. تقل", "10. يتسابق", "11. تخش", "12. ألبسْ", "13. تجتهدُ", "14. نستمعُ", "15. يزرع الفلاح الأرض", "16. يبني العصفور عشه", "17. يكتب التلميذ الدرس", "18. يبنون", "19. يقصرا", "20. يحققوا", "21. تكتبي", "22. تكونوا", "23. جميع ما سبق", "24. تتكلمون", "25. نون النسوة", "26. تشربي", "27. جميع ما سبق", "28. أخاك", "29. فمك", "30. ذا", "31. فاك", "32. مستتر", "33. بارز", "34. بارز", "35. حالًا", "36. منصوبة", "37. حالًا", "38. الماء", "39. الفتحة", "40. الكسرة", "41. الياء", "42. معرفة", "43. التعبير عن فكرة أو رأي ونشره للآخرين", "44. معبرًا عن الفكرة الرئيسية ومشوقًا", "45. جمل قصيرة وواضحة تحمل الفكرة", "46. توجيه القارئ لسلوك إيجابي", "47. تلخيص الفكرة وتأكيدها", "48. تصنيف المحتوى وربطه بموضوع", "49. جملة اسمية", "50. أخوك", "51. مفرد", "52. ماهرون", "53. قصتين", "54. طبيةً", "55. جديدةً", "56. الآلات", "57. النقوش الموجودة على المعابد والبرديات", "58. أدوات الطهي", "59. كتب اسمه بالهيروغليفية على ورق بردي", "60. عالميًا", "61. مبهرة", "62. عظمة الحضارة المصرية", "63. يمر بلطف وسلاسة", "64. نسخ", "65. المهذبةُ", "66. الفضلياتِ", "67. التلميذُ", "68. نص أدبي نثري موجز", "69. قراءة القصة وفهمها", "70. منطق الأحداث وتسلسلها", "71. ربط الأحداث بعد التغيير", "72. ظهور أحداث ونهاية جديدة", "73. الصدق وتحمل المسئولية", "74. الاعتراف بالخطأ", "75. الإكمال والإصرار", "76. لا يُهزم بسهولة", "77. إنهاء ما بدأه بإصرار وقوة", "78. الاستمرارية", "79. الإصرار والعمل", "80. يشتت تركيزه", "81. العبر", "82. الاستسلام", "83. أحمد شوقي", "84. الوطن", "85. الحق", "86. رعاية الله", "87. أخلاقنا وأعمالنا", "88. الملك", "89. السعي المتواصل", "90. مصر", "91. القمة", "92. القاهرة", "93. تعبير مجازي", "94. العمل", "95. الحديث", "96. رموز", "97. مجازي", "98. الصدق وتحمل المسئولية", "99. الاعتراف بالخطأ", "100. المدخل", "101. العالي", "102. يمر بسهولة", "103. إصلاح", "104. الإساءة", "105. مقروءةً", "106. تتراءى", "107. تساءل", "108. رؤوس", "109. يكافئ", "110. قارب", "111. إرادة قوية", "112. ناحية", "113. تصميم"], "ISLAM ANSWERS": ["1. التصديق الجازم بالحياة بعد الموت والحساب", "2. الجنة", "3. الطاعات", "4. جميع ما سبق", "5. الصبر على الشدائد", "6. النفخ في الصور", "7. مكية", "8. كلاهما", "9. اختبار الناس أيهم أحسن عملا", "10. الطواف والسعي", "11. عدم الوقوف بعرفة", "12. مكة المكرمة", "13. العاشرة للهجرة", "14. عرفة", "15. أكثر من مئة ألف", "16. الفقه والكرم", "17. مصر", "18. عدم تدوين تلامذته لعلمه", "19. واجب إسلامي", "20. كلاهما صحيح", "21. أنفعهم للناس", "22. ابتغاء الأجر من الله تعالى", "23. أن يكون حرف المد موافقًا للحركة المجانسة له", "24. لا تشمل الوقوف بعرفة", "25. يوم عرفة في حجة الوداع", "26. الإيمان", "27. الرضا بقدر الله وقدره", "28. كلاهما صحيح", "29. يخافون ربهم", "30. مهيأة ومسخرة", "31. الركون إلى الدنيا", "32. همز أو سكون", "33. المد الجائز المنفصل", "34. كلاهما صحيح", "35. إظهار المساواة بين الناس أمام الله", "36. الكلام السيئ", "37. أيام", "38. أبو بكر الصديق", "39. عائشة", "40. غزة", "41. سبع سنوات", "42. الرسالة والأم", "43. كلاهما صحيح", "44. الإيمان بأن كل ما يحدث مكتوب عند الله", "45. الصلاة", "46. بعضها فوق بعض", "47. الطمأنينة والرضا", "48. التواضع ونبذ الحسد", "49. لأنه يحمد الله في السراء ويصبر في الضراء", "50. أوجدكم من العدم", "51. الماء", "52. أصروا على الكبر والعناد", "53. كلاهما صحيح", "54. بيت الله الحرام", "55. الطهارة من الذنوب", "56. الإحرام", "57. تقوية الروابط بين المسلمين", "58. طاعة الله والتقرب إليه", "59. بغداد", "60. حب العلم والقرآن", "61. طلب العلم", "62. لتعليم الصبر والتواضع", "63. طلب الأجر والثواب", "64. الوقوف بعرفة", "65. الإيمان باليوم الآخر", "66. مد طبيعي لا يزيد عن حركتين", "67. المد الجائز المنفصل", "68. رأيي صواب يحتمل الخطأ، ورأي غيري خطأ يحتمل الصواب", "69. الحج", "70. مسند الإمام أحمد", "71. الطمأنينة والسعادة", "72. الضراء", "73. جنة الله ورضاه", "74. الصادق الأمين", "75. العفو والتسامح", "76. القرآن", "77. صالح الأخلاق", "78. خيره لأهله", "79. التحلي بصفاته في التعامل والعمل", "80. غني وفقير ولا صغير وكبير", "81. لنفسه", "82. فعل الخيرات", "83. مشيئة الله وعلمه", "84. نار جهنم", "85. فاستبقوا الخيرات", "86. صدقة", "87. كل فعل طيب يقدمه المسلم", "88. متماسكًا", "89. أبوابه كثيرة ومتنوعة", "90. نوحيها", "91. 63", "92. حسن الخلق", "93. الكلام السيئ", "94. حروف فواتح السور", "95. كلمة واحدة", "96. 6", "97. قرة عينه", "98. بينهما", "99. عني مناسككم", "100. طلق مستبشر", "101. قدر الله وما شاء فعل", "102. افعل ولا حرج", "103. نقص عسلكم", "104. كلاهما"], "SOCIAL STUDIES ANSWERS": ["1. كثرة الشباب", "2. فرص العمل", "3. ارتفاع", "4. اعتدال المناخ", "5. الموارد", "6. السعودية", "7. الرعي", "8. الصومال", "9. الصومال والسودان", "10. صغار السن والشباب", "11. مصادر الطاقة", "12. الصناعات الاستهلاكية", "13. الصناعات الغذائية", "14. القطن", "15. حلوان", "16. صناعة الغزل والنسيج", "17. الصناعات البتروكيميائية", "18. التجارة والنقل", "19. التجارة", "20. السكك الحديدية", "21. التحويلية", "22. الخارجية", "23. قناة السويس", "24. السيارات", "25. الطولونية", "26. مستويات البطالة", "27. التاريخ المشترك", "28. ضعف الإنتاج", "29. البطالة", "30. مصادر الطاقة", "31. استغلال الموارد", "32. زيادة الاستثمارات", "33. الفوسفات", "34. البيزنطي", "35. عمرو بن العاص", "36. الروم", "37. حطين", "38. السياسية", "39. بيت المقدس", "40. جنكيز خان", "41. آسيا", "42. كتبغا", "43. تجهيز الجيش", "44. قطز", "45. بيبرس", "46. العسكر", "47. كافور الإخشيدي", "48. معاوية بن أبي سفيان", "49. الخلفاء الراشدين", "50. عثمان بن عفان", "51. العباسية", "52. عمر بن الخطاب", "53. عمر بن الخطاب", "54. الوالي", "55. عمر بن الخطاب", "56. بغداد", "57. ابن الهيثم", "58. الموالي", "59. الدورة الدموية الصغرى", "60. عمر بن الخطاب", "61. بغداد", "62. قتل المسلمين", "63. التعليمية", "64. الفسطاط", "65. الشعيبة", "66. السعودية", "67. البيئية", "68. الاجتماعية", "69. السند", "70. الأجيال القادمة", "71. الإمارات والسعودية", "72. غير موجود في الورقة", "73. مصر", "74. مصر", "75. التنمية الاقتصادية", "76. الخوارزمي", "77. آسيا", "78. كامب ديفيد", "79. أم البنين", "80. القرويين", "81. عثمانية", "82. كل ما سبق", "83. الغذائي"]};
+
+    const subjectMenu = document.getElementById("subjectMenu");
+    const answersContainer = document.getElementById("answersContainer");
+    const pageTitle = document.getElementById("pageTitle");
+    const pageSubtitle = document.getElementById("pageSubtitle");
+    const cardTitle = document.getElementById("cardTitle");
+    const statusPill = document.getElementById("statusPill");
+    const searchInput = document.getElementById("searchInput");
+    const toast = document.getElementById("toast");
+    const passwordScreen = document.getElementById("passwordScreen");
+    const passwordForm = document.getElementById("passwordForm");
+    const passwordInput = document.getElementById("passwordInput");
+    const pagePassword = "bloxahmad123";
+
+    let currentSubject = "ICT ANSWERS";
+    let allMode = false;
+
+    function unlockPage() {
+      document.body.classList.remove("locked");
+      passwordScreen.classList.add("hidden");
+      sessionStorage.setItem("answersUnlocked", "true");
+    }
+
+    if (sessionStorage.getItem("answersUnlocked") === "true") {
+      unlockPage();
+    } else {
+      passwordInput.focus();
+    }
+
+    passwordForm.addEventListener("submit", function (event) {
+      event.preventDefault();
+
+      if (passwordInput.value === pagePassword) {
+        unlockPage();
+      } else {
+        passwordInput.value = "";
+        passwordInput.focus();
+      }
+    });
+
+    function isHeading(line) {
+      return /^[A-Z0-9\s\-]+$/.test(line) && !/^\d/.test(line) && line.length > 8;
+    }
+
+    function formatLine(line) {
+      if (isHeading(line)) return line;
+
+      const match = line.match(/^([0-9]+)\s*[-]\s*([a-dA-D])?\s*/);
+      if (match) {
+        return match[1] + ". " + line.slice(match[0].length);
+      }
+
+      const matchNoLetter = line.match(/^([0-9]+)\s*[-]\s*/);
+      if (matchNoLetter) {
+        return matchNoLetter[1] + ". " + line.slice(matchNoLetter[0].length);
+      }
+
+      return line;
+    }
+
+    function countAnswers(subject) {
+      return answers[subject].filter(line => !isHeading(line)).length;
+    }
+
+    function buildMenu() {
+      subjectMenu.innerHTML = "";
+
+      Object.keys(answers).forEach(subject => {
+        const btn = document.createElement("button");
+        btn.className = "subject-btn" + (subject === currentSubject && !allMode ? " active" : "");
+        btn.innerHTML = "<span>" + subject.replace(" ANSWERS", "") + "</span><span class='count'>" + countAnswers(subject) + "</span>";
+
+        btn.onclick = function () {
+          currentSubject = subject;
+          allMode = false;
+          searchInput.value = "";
+          buildMenu();
+          renderAnswers();
+        };
+
+        subjectMenu.appendChild(btn);
+      });
+    }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function highlight(text, query) {
+      const safeText = escapeHtml(text);
+      if (!query) return safeText;
+
+      const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const regex = new RegExp("(" + escapedQuery + ")", "gi");
+      return safeText.replace(regex, "<mark>$1</mark>");
+    }
+
+    function makeLine(line, query, subject) {
+      const div = document.createElement("div");
+      div.className = isHeading(line) ? "section-heading" : "answer-line";
+
+      if (["ARABIC ANSWERS", "ISLAM ANSWERS", "SOCIAL STUDIES ANSWERS"].includes(subject) && !isHeading(line)) {
+        div.className += " arabic";
+      }
+
+      div.innerHTML = highlight(formatLine(line), query);
+      return div;
+    }
+
+    function renderSubject(subject, query) {
+      const subjectHeading = document.createElement("div");
+      subjectHeading.className = "section-heading";
+      subjectHeading.textContent = subject;
+      answersContainer.appendChild(subjectHeading);
+
+      let shown = 0;
+
+      answers[subject].forEach(line => {
+        const formatted = formatLine(line);
+        const match = !query || formatted.toLowerCase().includes(query) || subject.toLowerCase().includes(query);
+
+        if (match) {
+          answersContainer.appendChild(makeLine(line, query, subject));
+          if (!isHeading(line)) shown++;
+        }
+      });
+
+      return shown;
+    }
+
+    function renderAnswers() {
+      const query = searchInput.value.trim().toLowerCase();
+      answersContainer.innerHTML = "";
+
+      if (allMode) {
+        pageTitle.textContent = "All Answers";
+        pageSubtitle.textContent = "Every subject in one page.";
+        cardTitle.textContent = "ALL ANSWERS";
+
+        let total = 0;
+        Object.keys(answers).forEach(subject => {
+          total += renderSubject(subject, query);
+        });
+
+        statusPill.textContent = total + " shown";
+        return;
+      }
+
+      pageTitle.textContent = currentSubject.replace(" ANSWERS", " Answers");
+      pageSubtitle.textContent = "Clickable answer sheet with quick search.";
+      cardTitle.textContent = currentSubject;
+
+      let shown = 0;
+
+      answers[currentSubject].forEach(line => {
+        const formatted = formatLine(line);
+        const match = !query || formatted.toLowerCase().includes(query);
+
+        if (match) {
+          answersContainer.appendChild(makeLine(line, query, currentSubject));
+          if (!isHeading(line)) shown++;
+        }
+      });
+
+      statusPill.textContent = query ? shown + " found" : countAnswers(currentSubject) + " answers";
+    }
+
+    function showAll() {
+      allMode = true;
+      searchInput.value = "";
+      buildMenu();
+      renderAnswers();
+    }
+
+    function clearSearch() {
+      searchInput.value = "";
+      renderAnswers();
+      searchInput.focus();
+    }
+
+    function currentText() {
+      if (allMode) {
+        return Object.keys(answers).map(subject => {
+          return subject + "\n\n" + answers[subject].map(formatLine).join("\n");
+        }).join("\n\n--------------------\n\n");
+      }
+
+      return currentSubject + "\n\n" + answers[currentSubject].map(formatLine).join("\n");
+    }
+
+    async function copyCurrent() {
+      try {
+        await navigator.clipboard.writeText(currentText());
+        showToast("Copied!");
+      } catch (e) {
+        showToast("Copy failed.");
+      }
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+
+      setTimeout(function () {
+        toast.classList.remove("show");
+      }, 1600);
+    }
+
+    buildMenu();
+    renderAnswers();
+  </script>
+</body>
+</html>
